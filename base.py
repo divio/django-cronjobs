@@ -1,4 +1,3 @@
-
 from django.utils.safestring import SafeUnicode
 
 class CronBase(type):
@@ -24,6 +23,7 @@ class CronBase(type):
         loading.registry.register(name, module)
 
         return module
+
 
 class Cron(object):
     __metaclass__ = CronBase
