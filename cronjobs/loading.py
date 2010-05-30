@@ -1,5 +1,6 @@
 from django.conf import settings
 from datetime import datetime
+import os
 
 class CronCache(object):
     def __init__(self):
@@ -33,12 +34,20 @@ class CronCache(object):
         """
         crons = self.get_all_crons()
 
-        ret = {'cron_jobs':{'run':0, 'succeeded':0}}
+        ret = {'cron_jobs':{'run':0, 'succeeded':0, 'locked': 0}}
         for c in crons:
             cron = c()
-            if cron.next_run <= datetime.now() and cron.job():
-                cron._record.run()
-                ret['cron_jobs']['succeeded'] += 1
+            if cron.next_run <= datetime.now():
+                if cron.is_not_locked():
+                    open(cron.get_lock_file_name(), 'w').close()
+                    try:
+                        if cron.job():
+                            cron._record.run()
+                            ret['cron_jobs']['succeeded'] += 1
+                    finally:
+                        os.remove(cron.get_lock_file_name())
+                else:
+                    ret['cron_jobs']['locked'] += 1
             ret['cron_jobs']['run'] += 1
         return ret
 

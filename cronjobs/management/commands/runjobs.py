@@ -12,4 +12,9 @@ class Command(BaseCommand):
     
     def handle(self, **options):
         result = registry.run()
-        return "all cronjobs finished successfully. checked %d jobs, actually run %d" % (result['cron_jobs']['run'], result['cron_jobs']['succeeded'])
+        return (
+            "all cronjobs finished successfully. checked %d jobs, actually run "
+            "%d (locked %d)" % (result['cron_jobs']['run'],
+                                result['cron_jobs']['succeeded'],
+                                result['cron_jobs']['succeeded'])
+        )
