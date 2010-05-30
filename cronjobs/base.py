@@ -1,8 +1,59 @@
-from django.utils.safestring import SafeUnicode
 from cronjobs.constants import DAYS, HOURS
+from django.utils.safestring import SafeUnicode
 import os
+import time
 
-base_path = os.path.abspath(os.path.dirname(__file__))
+def _job_decorator(func):
+    def _wrapped(self):
+        if not self.lock.is_active:
+            self.lock.aquire()
+            try:
+                return func(self)
+            finally:
+                self.lock.release()
+        return False
+    _wrapped.__name__ = func.__name__
+    return _wrapped
+
+
+class CronLock(object):
+    def __init__(self, cls):
+        self.cls = cls
+        self.base_path = os.path.abspath(os.path.dirname(__import__(cls.__module__).__file__))
+        self.filename = '.%s.lockfile' % cls.__class__.__name__
+    
+    def get_lock_path(self):
+        return os.path.abspath(os.path.join(self.base_path, self.filename))
+    
+    @property
+    def is_active(self):
+        return os.path.exists(self.get_lock_path())
+    
+    def aquire(self):
+        lockfile = open(self.get_lock_path(), 'w')
+        lockfile.write(str(time.time()))
+        lockfile.close()
+        
+    def age(self):
+        if self.is_active:
+            lockfile = open(self.get_lock_path(), 'r')
+            timestamp = lockfile.read().strip()
+            lockfile.close()
+            return timet.time() - float(timestamp)
+        return 0.0
+    
+    def release(self):
+        try:
+            os.remove(self.get_lock_path())
+        except OSError:
+            pass
+        
+    def __nonzero__(self):
+        return int(self.is_active)
+        
+    def __repr__(self):
+        return '<CronLock of %s: %s>' % (self.cls.__name__, bool(self))
+
 
 class CronBase(type):
     def __new__(cls, name, bases, attrs):
@@ -21,14 +72,19 @@ class CronBase(type):
             attrs['run_every'] = 1 * DAYS
         else:
             attrs['run_every'] *= interval_unit
+            
+        # decorate the job method
+        
+        attrs['job'] = _job_decorator(attrs['job'])
 
         # Create the class.
-        module = type.__new__(cls, name, bases, attrs)
+        klass = type.__new__(cls, name, bases, attrs)
+        klass.lock = CronLock(klass)
         from cronjobs import loading
         # Register the class for future reference
-        loading.registry.register(name, module)
+        loading.registry.register(name, klass)
 
-        return module
+        return klass
 
 
 class Cron(object):
@@ -42,7 +98,6 @@ class Cron(object):
         cron_type = models.CronType.for_class(self.__class__)
         self._record = models.Cron.objects.get_or_create(type=cron_type)[0]
         self.type = cron_type
-
     
     def job(self):
         """
@@ -53,13 +108,6 @@ class Cron(object):
     def get_next_run(self):
         return self._record.next_run
     next_run = property(get_next_run)
-    
-    def get_lock_file_name(self):
-        name = self.__class__.__name__
-        return os.path.abspath(os.path.join(base_path, '.%s.lockfile' % name)) 
-    
-    def is_not_locked(self):
-        return not os.path.exists(self.get_lock_file_name())
 
     def __unicode__(self):
         return SafeUnicode(unicode(self.render()))

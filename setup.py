@@ -14,7 +14,7 @@ EXTRA_CLASSIFIERS = [
 ]
 
 #VERSION = __import__(APP_NAME).__version__
-VERSION = '0.1.1'
+VERSION = '0.1.2'
 
 # DO NOT EDIT ANYTHING DOWN HERE... this should be common to all django app packages
 from setuptools import setup, find_packages

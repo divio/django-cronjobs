@@ -38,14 +38,14 @@ class CronCache(object):
         for c in crons:
             cron = c()
             if cron.next_run <= datetime.now():
-                if cron.is_not_locked():
-                    open(cron.get_lock_file_name(), 'w').close()
+                if not cron.lock.is_active:
+                    cron.lock.aquire()
                     try:
                         if cron.job():
                             cron._record.run()
                             ret['cron_jobs']['succeeded'] += 1
                     finally:
-                        os.remove(cron.get_lock_file_name())
+                        cron.lock.release()
                 else:
                     ret['cron_jobs']['locked'] += 1
             ret['cron_jobs']['run'] += 1
