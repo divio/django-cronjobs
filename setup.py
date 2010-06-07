@@ -5,8 +5,9 @@ PROJECT_URL = 'http://github.com/divio/%s/' % PACKAGE_NAME
 
 AUTHOR="Patrick Lauber"
 
-EXTRA_CLASSIFIERS = [
-]
+EXTRA_CLASSIFIERS = []
+
+INSTALL_REQUIRES = []
 
 VERSION = '0.1.3'
 
