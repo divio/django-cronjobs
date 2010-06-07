@@ -1,6 +1,15 @@
-from django.conf import settings
+from cronjobs.base import CronFailed
+from cronjobs.models import CronLog
 from datetime import datetime
+from django.conf import settings
 import os
+import time
+import traceback
+
+def _format_exception(e):
+    if isinstance(e, CronFailed):
+        return "CronFailed: %s" % e.message
+    return traceback.format_exc()
 
 class CronCache(object):
     def __init__(self):
@@ -39,16 +48,37 @@ class CronCache(object):
             cron = c()
             if cron.next_run <= datetime.now():
                 if not cron.lock.is_active:
-                    cron.lock.aquire()
+                    success = False
+                    exception_message = ""
+                    duration = 0.0
                     try:
-                        if cron.job():
+                        ret['cron_jobs']['run'] += 1                        
+                        start = time.time()
+                        try:
+                            status = cron.job()
+                            status = status or status is None
+                        except CronFailed, e:
+                            status = False
+                            exception_message = _format_exception(e)
+                        stop = time.time()
+                        duration = stop - start
+                        if status:
                             cron._record.run()
                             ret['cron_jobs']['succeeded'] += 1
+                            success = True
+                    except Exception, e:
+                        exception_message = _format_exception(e)
+                        raise
                     finally:
-                        cron.lock.release()
+                        CronLog.objects.create(
+                            app_label=cron._record.type.app_label,
+                            name=cron._record.type.name,
+                            success=success,
+                            duration=str(duration),
+                            exception_message=exception_message,
+                        )
                 else:
                     ret['cron_jobs']['locked'] += 1
-            ret['cron_jobs']['run'] += 1
         return ret
 
 registry = CronCache()

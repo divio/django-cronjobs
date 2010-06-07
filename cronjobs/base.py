@@ -8,12 +8,16 @@ def _job_decorator(func):
         if not self.lock.is_active:
             self.lock.aquire()
             try:
-                return func(self)
+                resp = func(self)
             finally:
                 self.lock.release()
+            return resp
         return False
     _wrapped.__name__ = func.__name__
     return _wrapped
+
+
+class CronFailed(Exception): pass
 
 
 class CronLock(object):
@@ -94,9 +98,9 @@ class Cron(object):
 
     def __init__(self, id='', **kwargs):
         self.id = id
-        from cronjobs import models
-        cron_type = models.CronType.for_class(self.__class__)
-        self._record = models.Cron.objects.get_or_create(type=cron_type)[0]
+        from cronjobs.models import CronType, Cron
+        cron_type = CronType.objects.for_class(self.__class__)
+        self._record = Cron.objects.get_or_create(type=cron_type)[0]
         self.type = cron_type
     
     def job(self):

@@ -3,18 +3,12 @@ PACKAGE_NAME = 'django-%s' % APP_NAME
 DESCRIPTION = 'django cronjobs app'
 PROJECT_URL = 'http://github.com/divio/%s/' % PACKAGE_NAME
 
-INSTALL_REQUIRES = [
-        #'django (>1.1.0)',
-        #'django-tinymce',
-        #'django-tagging',
-    ]
 AUTHOR="Patrick Lauber"
 
 EXTRA_CLASSIFIERS = [
 ]
 
-#VERSION = __import__(APP_NAME).__version__
-VERSION = '0.1.2'
+VERSION = '0.1.3'
 
 # DO NOT EDIT ANYTHING DOWN HERE... this should be common to all django app packages
 from setuptools import setup, find_packages
