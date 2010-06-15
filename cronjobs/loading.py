@@ -53,7 +53,7 @@ class CronCache(object):
                     exception_message = ""
                     duration = 0.0
                     try:
-                        ret['cron_jobs']['run'] += 1                        
+                        ret['cron_jobs']['run'] += 1
                         start = time.time()
                         try:
                             status = cron.job()

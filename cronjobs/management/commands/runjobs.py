@@ -16,5 +16,5 @@ class Command(BaseCommand):
             "all cronjobs finished successfully. checked %d jobs, actually run "
             "%d (locked %d)" % (result['cron_jobs']['run'],
                                 result['cron_jobs']['succeeded'],
-                                result['cron_jobs']['succeeded'])
+                                result['cron_jobs']['locked'])
         )
