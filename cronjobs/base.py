@@ -18,6 +18,7 @@ def _job_decorator(func):
 
 
 class CronFailed(Exception): pass
+class SkipJob(Exception): pass
 
 
 class CronLock(object):

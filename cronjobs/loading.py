@@ -1,4 +1,4 @@
-from cronjobs.base import CronFailed
+from cronjobs.base import CronFailed, SkipJob
 from cronjobs.models import CronLog
 from datetime import datetime
 from django.conf import settings
@@ -44,9 +44,10 @@ class CronCache(object):
         crons = self.get_all_crons()
 
         ret = {'cron_jobs':{'run':0, 'succeeded':0, 'locked': 0}}
+        now = datetime.now()
         for c in crons:
             cron = c()
-            if cron.next_run <= datetime.now():
+            if cron.next_run <= now:
                 if not cron.lock.is_active:
                     success = False
                     exception_message = ""
@@ -60,12 +61,16 @@ class CronCache(object):
                         except CronFailed, e:
                             status = False
                             exception_message = _format_exception(e)
+                        except SkipJob, e:
+                            continue
                         stop = time.time()
                         duration = stop - start
                         if status:
                             cron._record.run()
                             ret['cron_jobs']['succeeded'] += 1
                             success = True
+                        else:
+                            exception_message = "Job returned: %s" % status
                     except Exception, e:
                         exception_message = _format_exception(e)
                         raise
