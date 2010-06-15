@@ -115,4 +115,4 @@ class Cron(object):
     next_run = property(get_next_run)
 
     def __unicode__(self):
-        return SafeUnicode(unicode(self.render()))
+        return self.__class__.__name__
