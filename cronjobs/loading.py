@@ -73,7 +73,6 @@ class CronCache(object):
                             exception_message = "Job returned: %s" % status
                     except Exception, e:
                         exception_message = _format_exception(e)
-                        raise
                     finally:
                         CronLog.objects.create(
                             app_label=cron._record.type.app_label,
