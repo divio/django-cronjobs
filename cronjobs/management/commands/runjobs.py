@@ -14,7 +14,10 @@ class Command(BaseCommand):
         result = registry.run()
         return (
             "all cronjobs finished successfully. checked %d jobs, actually run "
-            "%d (locked %d)" % (result['cron_jobs']['run'],
-                                result['cron_jobs']['succeeded'],
-                                result['cron_jobs']['locked'])
+            "%d (locked %d) (failed %s)" % (
+                result['cron_jobs']['run'],
+                result['cron_jobs']['succeeded'],
+                result['cron_jobs']['locked'],
+                result['cron_jobs']['failed'],
+            )
         )

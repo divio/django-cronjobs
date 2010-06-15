@@ -36,16 +36,13 @@ class CronLock(object):
     
     def aquire(self):
         lockfile = open(self.get_lock_path(), 'w')
-        lockfile.write(str(time.time()))
+        lockfile.write(str(os.getpid()))
         lockfile.close()
         
     def age(self):
         if self.is_active:
-            lockfile = open(self.get_lock_path(), 'r')
-            timestamp = lockfile.read().strip()
-            lockfile.close()
-            return timet.time() - float(timestamp)
-        return 0.0
+            return time.time() - os.path.getctime(self.get_lock_path())
+        return 0.0 
     
     def release(self):
         try:

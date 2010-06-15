@@ -43,7 +43,7 @@ class CronCache(object):
         """
         crons = self.get_all_crons()
 
-        ret = {'cron_jobs':{'run':0, 'succeeded':0, 'locked': 0}}
+        ret = {'cron_jobs': {'run': 0, 'succeeded': 0, 'locked': 0, 'failed': 0}}
         now = datetime.now()
         for c in crons:
             cron = c()
@@ -73,6 +73,7 @@ class CronCache(object):
                             exception_message = "Job returned: %s" % status
                     except Exception, e:
                         exception_message = _format_exception(e)
+                        ret['cron_jobs']['failed'] += 1
                     finally:
                         CronLog.objects.create(
                             app_label=cron._record.type.app_label,
