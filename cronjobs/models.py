@@ -33,7 +33,7 @@ class Cron(models.Model):
     next_run = models.DateTimeField(default=datetime.now())
 
     def run(self):
-        self.next_run = self.next_run + timedelta(seconds=self.type.run_every)
+        self.next_run = datetime.now() + timedelta(seconds=self.type.run_every)
         self.save()
 
     class Meta:
