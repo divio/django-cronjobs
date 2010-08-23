@@ -9,7 +9,7 @@ EXTRA_CLASSIFIERS = []
 
 INSTALL_REQUIRES = []
 
-VERSION = '0.1.6'
+VERSION = '0.1.7'
 
 # DO NOT EDIT ANYTHING DOWN HERE... this should be common to all django app packages
 from setuptools import setup, find_packages

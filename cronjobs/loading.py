@@ -50,6 +50,7 @@ class CronCache(object):
             if cron.next_run <= now:
                 if not cron.lock.is_active:
                     success = False
+                    skip = False
                     exception_message = ""
                     duration = 0.0
                     try:
@@ -62,6 +63,7 @@ class CronCache(object):
                             status = False
                             exception_message = _format_exception(e)
                         except SkipJob, e:
+                            skip = True
                             continue
                         stop = time.time()
                         duration = stop - start
@@ -75,13 +77,14 @@ class CronCache(object):
                         exception_message = _format_exception(e)
                         ret['cron_jobs']['failed'] += 1
                     finally:
-                        CronLog.objects.create(
-                            app_label=cron._record.type.app_label,
-                            name=cron._record.type.name,
-                            success=success,
-                            duration=str(duration),
-                            exception_message=exception_message,
-                        )
+                        if not skip:
+                            CronLog.objects.create(
+                                app_label=cron._record.type.app_label,
+                                name=cron._record.type.name,
+                                success=success,
+                                duration=str(duration),
+                                exception_message=exception_message,
+                            )
                 else:
                     ret['cron_jobs']['locked'] += 1
         return ret

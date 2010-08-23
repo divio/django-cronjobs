@@ -35,7 +35,7 @@ class Command(BaseCommand):
     def get_locks(self):
         for cron in registry.get_all_crons():
             if cron.lock.is_active:
-                yield lock
+                yield cron
                 
     def handle_crons(self):
         print "Available crons:"
@@ -49,7 +49,7 @@ class Command(BaseCommand):
     def handle_locks(self):
         from cronjobs.loading import registry
         print "Currently active cron locks:"
-        for lock in self.get_locks():
+        for cron in self.get_locks():
             print " %s (%s seconds old)" % (cron, cron.lock.age)
         print
                 
